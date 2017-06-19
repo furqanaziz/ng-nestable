@@ -120,7 +120,7 @@
 
 				maxDepth        : number of levels an item can be nested (default 5)
 				group           : group ID to allow dragging between lists (default 0)
-				
+
 				listNodeName    : The HTML element to create for lists (default 'ol')
 				itemNodeName    : The HTML element to create for list items (default 'li')
 				rootClass       : The class of the root element .nestable() was used on (default 'dd')
@@ -145,18 +145,22 @@
 				restrict: 'A',
 				require: 'ngModel',
 				compile: function(element){
-					var itemTemplate = element.html();
+          var itemTemplate = element.html();
 					element.empty();
 					return function($scope, $element, $attrs, $ngModel){
-						var options = $.extend(
+					  var options = $.extend(
 							{},
 							$nestable.defaultOptions,
 							$scope.$eval($attrs.ngNestable)
 						);
-						$scope.$watchCollection(function(){
+						$scope.$watch(function(){
+						  // console.log($ngModel.$modelValue);
 							return $ngModel.$modelValue;
 						}, function(model){
-							if(model && element.is(':empty')){
+              // console.log(model);
+              // console.log($element);
+              // console.log(element.is(':empty'));
+							if(model /*&& element.is(':empty')*/){
 
 								/**
 								 * we are running the formatters here instead of watching on $viewValue because our model is an Array
@@ -171,12 +175,16 @@
 								if ($nestable.collapseAllOnStart) {
 									root.nestable('collapseAll');
 								}
-								root.on('change', function(){
-									$ngModel.$setViewValue(root.nestable('serialize'));
-									$scope && $scope.$root && $scope.$root.$$phase || $scope.$apply();
-								});
+                root.on('change', function(){
+                  var items = root.nestable('serialize');
+                  $ngModel.$modelValue.length = 0;
+                  for(var i = 0, l = items.length; i<l; i++) {
+                    $ngModel.$modelValue.push(items[i]);
+                  }
+                  $scope && $scope.$root && $scope.$root.$$phase || $scope.$apply();
+                });
 							}
-						});
+						}, true);
 					};
 				},
 				controller: angular.noop
@@ -229,7 +237,7 @@
 			require: '^ngNestable',
 			link: function($scope, $element){
 				$scope[$nestable.modelName] = $element.parent().data('item');
-			}
+      }
 		};
 	}]);
 })(window, document, window.angular);
